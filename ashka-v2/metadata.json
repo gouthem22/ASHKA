@@ -1,0 +1,6 @@
+{
+  "name": "Ashka Ladies Hostel",
+  "description": "Safe, premium, boutique stay for college students and working women in Trichy.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

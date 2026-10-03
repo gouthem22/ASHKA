@@ -1,0 +1,237 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { gsap } from 'gsap';
+
+export interface NavItem {
+  label: string;
+  href: string;
+}
+
+interface PillNavProps {
+  items: NavItem[];
+  activeHref: string;
+  onNavigate: (href: string) => void;
+  logoSrc?: string;
+  baseColor?: string;
+  pillColor?: string;
+  pillTextColor?: string;
+  hoveredPillTextColor?: string;
+  ease?: string;
+  initialLoadAnimation?: boolean;
+}
+
+export const PillNav: React.FC<PillNavProps> = ({
+  items,
+  activeHref,
+  onNavigate,
+  logoSrc = '/logo/ashka-logo.png',
+  baseColor = '#6E2F3B',
+  pillColor = '#FFF4EF',
+  pillTextColor = '#3A1F26',
+  hoveredPillTextColor = '#FFFFFF',
+  ease = 'power3.easeOut',
+  initialLoadAnimation = true,
+}) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pillRef = useRef<HTMLDivElement>(null);
+  const navListRef = useRef<HTMLUListElement>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [hoveredHref, setHoveredHref] = useState<string | null>(null);
+
+  // Position the sliding background pill on active/hovered item
+  useEffect(() => {
+    if (!navListRef.current || !pillRef.current) return;
+    const targetHref = hoveredHref || activeHref;
+    const activeItem = navListRef.current.querySelector(
+      `[data-href="${targetHref}"]`
+    ) as HTMLElement;
+
+    if (activeItem) {
+      const { offsetLeft, offsetWidth } = activeItem;
+      gsap.to(pillRef.current, {
+        x: offsetLeft,
+        width: offsetWidth,
+        opacity: 1,
+        duration: 0.35,
+        ease: ease,
+      });
+    } else {
+      gsap.to(pillRef.current, { opacity: 0, duration: 0.2 });
+    }
+  }, [activeHref, hoveredHref, ease]);
+
+  // Initial load animation
+  useEffect(() => {
+    if (initialLoadAnimation && containerRef.current) {
+      gsap.fromTo(
+        containerRef.current,
+        { y: -30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out' }
+      );
+    }
+  }, [initialLoadAnimation]);
+
+  const handleLinkClick = (e: React.MouseEvent, href: string) => {
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    onNavigate(href);
+  };
+
+  return (
+    <header className="fixed top-4 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none">
+      <nav
+        ref={containerRef}
+        aria-label="Main Navigation"
+        className="pointer-events-auto flex items-center justify-between gap-3 p-1.5 md:p-2 rounded-full shadow-2xl transition-all backdrop-blur-md"
+        style={{
+          backgroundColor: `${baseColor}F0`,
+          border: '1px solid rgba(234, 183, 128, 0.3)',
+          boxShadow: '0 12px 36px -8px rgba(0, 0, 0, 0.5), 0 0 20px rgba(110, 47, 59, 0.4)',
+        }}
+      >
+        {/* EDIT 2: Whole uncropped logo in rounded square */}
+        <a
+          href="/"
+          onClick={(e) => handleLinkClick(e, '/')}
+          className="flex items-center gap-2 group pl-1 focus:outline-none"
+          title="Ashka Ladies Hostel - Home"
+        >
+          <div
+            className="w-10 h-10 md:w-11 md:h-11 rounded-xl overflow-hidden flex items-center justify-center p-1 transition-transform duration-300 group-hover:scale-105"
+            style={{
+              backgroundColor: '#6E2F3B',
+              border: '1px solid rgba(234, 183, 128, 0.4)',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+            }}
+          >
+            <img
+              src={logoSrc}
+              alt="Ashka Ladies Hostel Logo"
+              className="w-full h-full object-contain"
+              onError={(e) => {
+                // Graceful fallback to text if image fails to load
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+          </div>
+          <span className="hidden sm:inline font-serif font-bold text-lg md:text-xl text-[#FDF4F3] pr-2 tracking-tight">
+            Ashka
+          </span>
+        </a>
+
+        {/* Desktop Links Container */}
+        <div className="relative hidden md:block">
+          <ul
+            ref={navListRef}
+            className="relative flex items-center gap-1 z-10 list-none m-0 p-0"
+          >
+            {/* Sliding Pill Indicator */}
+            <div
+              ref={pillRef}
+              className="absolute top-1 bottom-1 rounded-full pointer-events-none transition-opacity"
+              style={{
+                backgroundColor: pillColor,
+                zIndex: 0,
+                opacity: 0,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              }}
+            />
+
+            {items.map((item) => {
+              const isActive = activeHref === item.href;
+              const isHovered = hoveredHref === item.href;
+
+              return (
+                <li
+                  key={item.href}
+                  data-href={item.href}
+                  onMouseEnter={() => setHoveredHref(item.href)}
+                  onMouseLeave={() => setHoveredHref(null)}
+                  className="relative z-10"
+                >
+                  {/* EDIT 1: Clean client routing navigation */}
+                  <a
+                    href={item.href}
+                    onClick={(e) => handleLinkClick(e, item.href)}
+                    className="block px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-full select-none whitespace-nowrap"
+                    style={{
+                      color: isActive
+                        ? pillTextColor
+                        : isHovered
+                        ? hoveredPillTextColor
+                        : '#FDF4F3',
+                    }}
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+
+        {/* Mobile Round Hamburger Button */}
+        <div className="md:hidden flex items-center">
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            className="w-10 h-10 rounded-full flex flex-col items-center justify-center gap-1.5 focus:outline-none transition-transform active:scale-95"
+            style={{
+              backgroundColor: mobileMenuOpen ? '#9E4A57' : 'rgba(253, 244, 243, 0.12)',
+              border: '1px solid rgba(234, 183, 128, 0.3)',
+            }}
+            aria-label={mobileMenuOpen ? 'Close Navigation Menu' : 'Open Navigation Menu'}
+            aria-expanded={mobileMenuOpen}
+          >
+            <span
+              className={`block w-4 h-0.5 bg-[#FDF4F3] transition-transform duration-300 ${
+                mobileMenuOpen ? 'rotate-45 translate-y-2' : ''
+              }`}
+            />
+            <span
+              className={`block w-4 h-0.5 bg-[#FDF4F3] transition-opacity duration-200 ${
+                mobileMenuOpen ? 'opacity-0' : ''
+              }`}
+            />
+            <span
+              className={`block w-4 h-0.5 bg-[#FDF4F3] transition-transform duration-300 ${
+                mobileMenuOpen ? '-rotate-45 -translate-y-2' : ''
+              }`}
+            />
+          </button>
+        </div>
+      </nav>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-x-4 top-20 pointer-events-auto md:hidden z-50 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div
+            className="p-5 rounded-3xl shadow-2xl backdrop-blur-xl border border-[#EAB780]/30"
+            style={{ backgroundColor: '#2A1419F5' }}
+          >
+            <ul className="flex flex-col gap-2">
+              {items.map((item) => {
+                const isActive = activeHref === item.href;
+                return (
+                  <li key={item.href}>
+                    <a
+                      href={item.href}
+                      onClick={(e) => handleLinkClick(e, item.href)}
+                      className="block px-4 py-3 rounded-2xl text-base font-medium transition-all"
+                      style={{
+                        backgroundColor: isActive ? '#6E2F3B' : 'transparent',
+                        color: isActive ? '#FFF4EF' : '#FDF4F3',
+                        border: isActive ? '1px solid rgba(234, 183, 128, 0.3)' : '1px solid transparent',
+                      }}
+                    >
+                      {item.label}
+                    </a>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        </div>
+      )}
+    </header>
+  );
+};

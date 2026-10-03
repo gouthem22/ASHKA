@@ -11,9 +11,13 @@ import { ContactPage } from './pages/ContactPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export default function App() {
-  // Normalize current path from window.location
+  // Normalize current path from window.location (supporting GitHub Pages subpaths)
   const getNormalizedPath = () => {
-    const path = window.location.pathname || '/';
+    let path = window.location.pathname || '/';
+    // Strip common GitHub pages subpath prefix if present
+    if (path.toLowerCase().startsWith('/ashka')) {
+      path = path.slice(6) || '/';
+    }
     // Remove trailing slash if not root
     if (path.length > 1 && path.endsWith('/')) {
       return path.slice(0, -1);
@@ -35,8 +39,11 @@ export default function App() {
   }, []);
 
   const navigate = (href: string) => {
+    const isGhPages = window.location.pathname.toLowerCase().startsWith('/ashka');
+    const targetUrl = isGhPages ? `/ASHKA${href}` : href;
+
     if (href !== currentPath) {
-      window.history.pushState({}, '', href);
+      window.history.pushState({}, '', targetUrl);
       setCurrentPath(href);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }

@@ -22,8 +22,8 @@ export const Reveal: React.FC<RevealProps> = ({
   as: Component = 'div',
   className = '',
   delay = 0,
-  duration = 0.8,
-  y = 24,
+  duration = 0.55,
+  y = 18,
   x = 0,
   stagger = 0.1,
   staggerChildren = false,
@@ -58,6 +58,7 @@ export const Reveal: React.FC<RevealProps> = ({
       opacity: 0,
       y,
       x,
+      willChange: 'transform, opacity',
     });
 
     let animation: gsap.core.Tween | null = null;
@@ -75,6 +76,12 @@ export const Reveal: React.FC<RevealProps> = ({
               delay,
               stagger: staggerChildren ? stagger : 0,
               overwrite: 'auto',
+              onComplete: () => {
+                // Release GPU hint after animation
+                (targets as Element[]).forEach((t) => {
+                  (t as HTMLElement).style.willChange = 'auto';
+                });
+              },
             });
 
             if (triggerOnce) {

@@ -91,6 +91,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             <img
               src="/images/ai/hostel-balcony.jpg"
               alt="Ashka Ladies Hostel Architecture & Balcony"
+              fetchPriority="high"
+              decoding="sync"
               className="w-full h-full object-cover object-center scale-105 transition-transform duration-1000 ease-out"
             />
             {/* Subtle Natural Scrim for High-Contrast Text Legibility */}
@@ -304,6 +306,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   <img
                     src={room.image}
                     alt={room.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                   />
                   <div className="absolute top-4 left-4">

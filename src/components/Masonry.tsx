@@ -79,7 +79,7 @@ export const Masonry: React.FC<MasonryProps> = ({
     return cols;
   }, [items, columnCount]);
 
-  // Entrance animation with GSAP
+  // Entrance animation with GSAP — fires once on mount only
   useEffect(() => {
     if (!containerRef.current) return;
     const elements = containerRef.current.querySelectorAll('.masonry-card');
@@ -102,7 +102,8 @@ export const Masonry: React.FC<MasonryProps> = ({
         ease: ease,
       }
     );
-  }, [items, columnCount, ease, duration, stagger, animateFrom]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally run once on mount
 
   return (
     <div ref={containerRef} className={`w-full ${className}`}>
@@ -122,6 +123,7 @@ export const Masonry: React.FC<MasonryProps> = ({
                     transform: isHovered && scaleOnHover ? `scale(${hoverScale})` : 'scale(1)',
                     filter: hasHoveredOther && blurToFocus ? 'opacity(0.85)' : 'none',
                     transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), filter 0.3s ease',
+                    willChange: 'transform',
                   }}
                   onMouseEnter={() => setHoveredId(item.id)}
                   onMouseLeave={() => setHoveredId(null)}
@@ -141,7 +143,7 @@ export const Masonry: React.FC<MasonryProps> = ({
                     {/* Photo title badge */}
                     {item.title && (
                       <div className="absolute bottom-4 left-4 right-4">
-                        <span className="inline-block px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#26201E] bg-white/95 backdrop-blur-md border border-[#E0DAD2] shadow-sm">
+                        <span className="inline-block px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#26201E] bg-white/95 border border-[#E0DAD2] shadow-sm">
                           {item.title}
                         </span>
                       </div>

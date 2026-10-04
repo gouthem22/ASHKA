@@ -1,5 +1,39 @@
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import * as Icons from 'lucide-react';
+import React, { useEffect, useRef, useMemo } from 'react';
+import {
+  Wifi,
+  Utensils,
+  Droplets,
+  Shield,
+  Sun,
+  Wind,
+  Layers,
+  Coffee,
+  Zap,
+  Home,
+  Star,
+  Sparkles,
+  Clock,
+  Lock,
+  Camera,
+  Tv,
+  BookOpen,
+  Shirt,
+  Dumbbell,
+  Heart,
+  MapPin,
+  Phone,
+  ChevronUp,
+  Flame,
+  Truck,
+} from 'lucide-react';
+import type { LucideProps } from 'lucide-react';
+
+// Static icon map – avoids importing entire lucide bundle at runtime
+const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
+  Wifi, Utensils, Droplets, Shield, Sun, Wind, Layers, Coffee, Zap,
+  Home, Star, Sparkles, Clock, Lock, Camera, Tv, BookOpen, Shirt,
+  Dumbbell, Heart, MapPin, Phone, ChevronUp, Flame, Truck,
+};
 
 export interface SpiralItem {
   id: string;
@@ -46,43 +80,69 @@ export const InfiniteSpiral: React.FC<InfiniteSpiralProps> = ({
   className = '',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [offset, setOffset] = useState(0);
+  // Store card DOM refs for direct mutation – bypasses React re-render
+  const cardRefsMap = useRef<Map<number, HTMLDivElement>>(new Map());
   const isHoveredRef = useRef(false);
   const animFrameRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(performance.now());
+  const offsetRef = useRef(0);
 
   const totalItems = items.length;
   const loopHeight = totalItems * verticalSpacing;
 
-  // Animation Loop
+  // Duplicate items array so the spiral never has gaps
+  const renderedItems = useMemo(() => {
+    return [...items, ...items, ...items];
+  }, [items]);
+
+  // Animation Loop — mutates DOM directly, zero React re-renders
   useEffect(() => {
-    let currentOffset = 0;
     const dirFactor = direction === 'up' ? 1 : -1;
 
     const animate = (time: number) => {
-      const dt = (time - lastTimeRef.current) / 1000;
+      const dt = Math.min((time - lastTimeRef.current) / 1000, 0.05); // cap dt to 50ms
       lastTimeRef.current = time;
 
       if (!pauseOnHover || !isHoveredRef.current) {
-        currentOffset = (currentOffset + speed * 60 * dt * dirFactor) % loopHeight;
-        setOffset(currentOffset);
+        offsetRef.current = (offsetRef.current + speed * 60 * dt * dirFactor) % loopHeight;
       }
+
+      const currentOffset = offsetRef.current;
+
+      // Directly mutate each card's transform & opacity – no setState
+      cardRefsMap.current.forEach((el, index) => {
+        if (!el) return;
+        const itemPos = (index * verticalSpacing - currentOffset) % loopHeight;
+        const normalizedY =
+          itemPos < -loopHeight / 2
+            ? itemPos + loopHeight
+            : itemPos > loopHeight / 2
+            ? itemPos - loopHeight
+            : itemPos;
+
+        const angle =
+          (index / cardsPerTurn) * Math.PI * 2 +
+          (currentOffset / loopHeight) * Math.PI * 2;
+        const x = Math.sin(angle) * radius;
+        const z = Math.cos(angle) * radius;
+
+        const zNorm = (z + radius) / (2 * radius);
+        const scale = 0.85 + zNorm * (centerScale - 0.85);
+        const opacity = 0.35 + zNorm * 0.65;
+
+        el.style.transform = `translate3d(${x}px, ${normalizedY}px, ${z}px) rotateY(${(-angle * 180) / Math.PI}deg) scale(${scale})`;
+        el.style.opacity = String(opacity);
+        el.style.zIndex = String(Math.round(zNorm * 100));
+      });
 
       animFrameRef.current = requestAnimationFrame(animate);
     };
 
     animFrameRef.current = requestAnimationFrame(animate);
-
     return () => {
       if (animFrameRef.current) cancelAnimationFrame(animFrameRef.current);
     };
-  }, [speed, direction, loopHeight, pauseOnHover]);
-
-  // Duplicate items array so the spiral never has gaps
-  const renderedItems = useMemo(() => {
-    // Generate 3 repetitions to ensure continuous loop
-    return [...items, ...items, ...items];
-  }, [items]);
+  }, [speed, direction, loopHeight, pauseOnHover, cardsPerTurn, radius, centerScale, verticalSpacing]);
 
   return (
     <div
@@ -104,62 +164,38 @@ export const InfiniteSpiral: React.FC<InfiniteSpiralProps> = ({
         style={{ transformStyle: 'preserve-3d' }}
       >
         {renderedItems.map((item, index) => {
-          const itemPos = (index * verticalSpacing - offset) % loopHeight;
-          const normalizedY =
-            itemPos < -loopHeight / 2
-              ? itemPos + loopHeight
-              : itemPos > loopHeight / 2
-              ? itemPos - loopHeight
-              : itemPos;
-
-          // Helical angle
-          const angle = (index / cardsPerTurn) * Math.PI * 2 + (offset / loopHeight) * Math.PI * 2;
-          const x = Math.sin(angle) * radius;
-          const z = Math.cos(angle) * radius;
-
-          // Distance factor for scale and opacity
-          const zNorm = (z + radius) / (2 * radius); // 0 (back) to 1 (front)
-          const scale = 0.85 + zNorm * (centerScale - 0.85);
-          const opacity = 0.35 + zNorm * 0.65;
-          const isFront = zNorm > 0.5;
-
-          // Dynamic Icon rendering
-          const IconComponent =
-            ((Icons as unknown) as Record<string, React.ComponentType<{ className?: string }>>)[item.iconName] ||
-            Icons.Sparkles;
+          const IconComponent = ICON_MAP[item.iconName] ?? Sparkles;
 
           return (
             <div
               key={`${item.id}-${index}`}
-              className="absolute pointer-events-auto transition-shadow duration-300"
+              ref={(el) => {
+                if (el) cardRefsMap.current.set(index, el);
+                else cardRefsMap.current.delete(index);
+              }}
+              className="absolute pointer-events-auto"
               style={{
                 width: `${cardWidth}px`,
                 height: `${cardHeight}px`,
-                transform: `translate3d(${x}px, ${normalizedY}px, ${z}px) rotateY(${(-angle * 180) / Math.PI}deg) scale(${scale})`,
-                opacity: opacity,
-                zIndex: Math.round(zNorm * 100),
+                // Initial hidden transform — RAF will override immediately
+                transform: 'translate3d(-9999px, 0, 0)',
+                opacity: 0,
                 transformStyle: 'preserve-3d',
+                willChange: 'transform, opacity',
               }}
             >
-              {/* Content card (clean white with charcoal typography matching reference) */}
+              {/* Content card */}
               <div
-                className="w-full h-full p-4 rounded-2xl flex items-center gap-3.5 shadow-[0_12px_30px_-6px_rgba(46,36,33,0.12)] border transition-all backdrop-blur-md"
+                className="w-full h-full p-4 flex items-center gap-3.5 border bg-white text-[#26201E]"
                 style={{
                   borderRadius: `${cardRadius}px`,
-                  backgroundColor: '#FFFFFF',
-                  color: '#26201E',
-                  borderColor: isFront ? '#26201E' : '#E0DAD2',
-                  boxShadow: isFront
-                    ? '0 16px 36px -8px rgba(46, 36, 33, 0.16)'
-                    : '0 4px 14px rgba(46, 36, 33, 0.06)',
+                  borderColor: '#E0DAD2',
+                  boxShadow: '0 4px 14px rgba(46,36,33,0.08)',
                 }}
               >
                 <div
-                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm"
-                  style={{
-                    backgroundColor: '#26201E',
-                    color: '#FFFFFF',
-                  }}
+                  className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: '#26201E' }}
                 >
                   <IconComponent className="w-5 h-5 text-white" />
                 </div>

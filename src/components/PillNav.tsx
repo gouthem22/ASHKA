@@ -23,7 +23,7 @@ export const PillNav: React.FC<PillNavProps> = ({
   items,
   activeHref,
   onNavigate,
-  logoSrc = '/logo/ashka-logo.png',
+  logoSrc = '/logo/ashka-logo-transparent.png',
   ease = 'power3.easeOut',
   initialLoadAnimation = true,
 }) => {
@@ -86,11 +86,11 @@ export const PillNav: React.FC<PillNavProps> = ({
           className="flex items-center gap-2.5 group focus:outline-none"
           title="Ashka Ladies Hostel - Home"
         >
-          <div className="w-8 h-8 md:w-9 md:h-9 rounded-lg overflow-hidden flex items-center justify-center p-0.5 bg-[#26201E] border border-[#26201E] shadow-sm transition-transform duration-300 group-hover:scale-105">
+          <div className="h-10 md:h-12 w-auto flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
             <img
               src={logoSrc}
               alt="Ashka Ladies Hostel Logo"
-              className="w-full h-full object-contain"
+              className="h-full w-auto object-contain drop-shadow-sm"
               onError={(e) => {
                 (e.target as HTMLElement).style.display = 'none';
               }}

@@ -12,13 +12,11 @@ export const Footer: React.FC<FooterProps> = () => {
       <Reveal staggerChildren stagger={0.08} className="max-w-6xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
         {/* Whole Logo */}
         <div className="flex items-center gap-4">
-          <div
-            className="w-14 h-14 rounded-2xl p-1 bg-[#26201E] border border-[#26201E] shadow-sm flex items-center justify-center shrink-0"
-          >
+          <div className="h-16 w-auto flex items-center justify-center shrink-0">
             <img
-              src="/logo/ashka-logo.png"
+              src="/logo/ashka-logo-transparent.png"
               alt="Ashka Ladies Hostel Logo"
-              className="w-full h-full object-contain"
+              className="h-full w-auto object-contain drop-shadow-sm"
             />
           </div>
           <div>

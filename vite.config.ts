@@ -3,8 +3,11 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
+  const isGitHubPages = process.env.GITHUB_PAGES === 'true';
+
   return {
-    base: './',
+    // Use /ASHKA/ base on GitHub Pages, ./ for local/Vercel
+    base: isGitHubPages ? '/ASHKA/' : './',
     plugins: [react(), tailwindcss()],
     resolve: {
       alias: {
@@ -21,11 +24,11 @@ export default defineConfig(() => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            // Split heavy animation libs into their own async chunks
-            'vendor-gsap': ['gsap'],
-            'vendor-motion': ['motion'],
-            'vendor-react': ['react', 'react-dom'],
+          // Vite 8 (Rolldown) requires manualChunks to be a function, not an object
+          manualChunks(id) {
+            if (id.includes('node_modules/gsap')) return 'vendor-gsap';
+            if (id.includes('node_modules/motion')) return 'vendor-motion';
+            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react/')) return 'vendor-react';
           },
         },
       },

@@ -1,6 +1,5 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import {
-  Wifi,
   Utensils,
   Droplets,
   Shield,
@@ -30,7 +29,7 @@ import type { LucideProps } from 'lucide-react';
 
 // Static icon map – avoids importing entire lucide bundle at runtime
 const ICON_MAP: Record<string, React.ComponentType<LucideProps>> = {
-  Wifi, Utensils, Droplets, Shield, Sun, Wind, Layers, Coffee, Zap,
+  Utensils, Droplets, Shield, Sun, Wind, Layers, Coffee, Zap,
   Home, Star, Sparkles, Clock, Lock, Camera, Tv, BookOpen, Shirt,
   Dumbbell, Heart, MapPin, Phone, ChevronUp, Flame, Truck,
 };

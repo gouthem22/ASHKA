@@ -105,7 +105,7 @@ export const HOSTEL_DATA = {
     { id: 'f1', name: '24-hour hot and cold water', iconName: 'Droplets' },
     { id: 'f2', name: 'Water heater', iconName: 'Flame' },
     { id: 'f3', name: 'Water purifier', iconName: 'ShieldCheck' },
-    { id: 'f4', name: 'Unlimited free Wi-Fi', iconName: 'Wifi' },
+
     { id: 'f5', name: 'Lift', iconName: 'ArrowUpDown' },
     { id: 'f6', name: 'Rooftop dining', iconName: 'Utensils' },
     { id: 'f7', name: 'CCTV', iconName: 'Video' },
